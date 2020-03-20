@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # dtrx -- Intelligently extract various archive types.
@@ -38,7 +38,7 @@ import tempfile
 import termios
 import textwrap
 import traceback
-import urlparse
+import urllib.parse
 
 try:
     set
@@ -98,7 +98,7 @@ class FilenameChecker(object):
     def is_free(self, filename):
         try:
             result = self.free_func(filename, *self.free_args)
-        except OSError, error:
+        except OSError as error:
             if error.errno == errno.EEXIST:
                 return False
             raise
@@ -159,7 +159,7 @@ class BaseExtractor(object):
         self.exit_codes = []
         try:
             self.archive = open(filename, 'r')
-        except (IOError, OSError), error:
+        except (IOError, OSError) as error:
             raise ExtractorError("could not open %s: %s" %
                                  (filename, error.strerror))
         if encoding:
@@ -174,7 +174,7 @@ class BaseExtractor(object):
             processes.append(subprocess.Popen(command, stdin=stdin,
                                               stdout=stdout,
                                               stderr=self.stderr))
-        except OSError, error:
+        except OSError as  error:
             if error.errno == errno.ENOENT:
                 raise ExtractorUnusable("could not run %s" % (command[0],))
             raise
@@ -294,7 +294,7 @@ class BaseExtractor(object):
     def extract(self):
         try:
             self.target = tempfile.mkdtemp(prefix='.dtrx-', dir='.')
-        except (OSError, IOError), error:
+        except (OSError, IOError) as error:
             raise ExtractorError("cannot extract here: %s" % (error.strerror,))
         old_path = os.path.realpath(os.curdir)
         os.chdir(self.target)
@@ -364,7 +364,7 @@ class CompressionExtractor(BaseExtractor):
         self.included_root = './'
         try:
             output_fd, self.target = tempfile.mkstemp(prefix='.dtrx-', dir='.')
-        except (OSError, IOError), error:
+        except (OSError, IOError) as error:
             raise ExtractorError("cannot extract here: %s" % (error.strerror,))
         self.run_pipes(output_fd)
         os.close(output_fd)
@@ -769,7 +769,7 @@ class BasePolicy(object):
         for choice in self.choices:
             question.extend(self.choice_wrapper.wrap(choice))
         while True:
-            print "\n".join(question)
+            print("\n").join(question)
             try:
                 answer = raw_input(self.prompt)
             except EOFError:
@@ -1058,7 +1058,7 @@ class BaseAction(object):
     def report(self, function, *args):
         try:
             error = function(*args)
-        except EXTRACTION_ERRORS, exception:
+        except EXTRACTION_ERRORS as exception:
             error = str(exception)
             logger.debug(''.join(traceback.format_exception(*sys.exc_info())))
         return error
@@ -1070,7 +1070,7 @@ class BaseAction(object):
             print
         else:
             self.do_print = True
-        print "%s:" % (filename,)
+        print("%s:") % (filename,)
 
 
 class ExtractionAction(BaseAction):
@@ -1092,7 +1092,7 @@ class ExtractionAction(BaseAction):
             return
         self.show_filename(self.current_filename)
         if extractor.contents is None:
-            print self.current_handler.target
+            print(self.current_handler.target)
             return
         def reverser(x, y):
             return cmp(y, x)
@@ -1106,13 +1106,13 @@ class ExtractionAction(BaseAction):
         while filenames:
             filename = filenames.pop()
             if isdir(filename):
-                print "%s/" % (filename,)
+                print ("%s/") % (filename,)
                 new_filenames = os.listdir(filename)
                 new_filenames.sort(reverser)
                 filenames.extend([pathjoin(filename, new_filename)
                                   for new_filename in new_filenames])
             else:
-                print filename
+                print (filename)
 
     def run(self, filename, extractor):
         self.current_filename = filename
@@ -1137,9 +1137,9 @@ class ListAction(BaseAction):
         else:
             self.did_list = True
             self.show_filename(filename)
-            print first_line
+            print(first_line)
         for line in filename_lister:
-            print line
+            print(line)
             
     def run(self, filename, extractor):
         self.did_list = False
@@ -1163,7 +1163,7 @@ class ExtractorApplication(object):
     def clean_destination(self, dest_name):
         try:
             os.unlink(dest_name)
-        except OSError, error:
+        except OSError as error:
             if error.errno == errno.EISDIR:
                 shutil.rmtree(dest_name, ignore_errors=True)
 
@@ -1262,7 +1262,7 @@ class ExtractorApplication(object):
     def check_file(self, filename):
         try:
             result = os.stat(filename)
-        except OSError, error:
+        except OSError as error:
             return error.strerror
         if stat.S_ISDIR(result.st_mode):
             return "cannot work with a directory"
